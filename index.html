@@ -1,0 +1,145 @@
+
+<!doctype html>
+<html lang='en'>
+    <head>
+        <title>CSE204 Assignment 8</title>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <link rel="stylesheet" type="text/css" href="style.css">
+    </head>
+
+    <body>
+        <h1>Todo List</h1>
+
+        <form id="addForm">
+            <label for="todo">Add Todo Item: </label>
+            <input type="text" id="todo">
+            <input type="submit" value="Add">
+        </form> 
+
+        <div id="result">
+            <table id="result_table"></table>
+        </div>
+
+        <script>
+            function updateTodo()
+            {
+                event.preventDefault();
+                var xhttp = new XMLHttpRequest();
+                xhttp.onreadystatechange = function() {
+                    if (this.readyState == 4 && this.status == 200) {
+                        var todos = JSON.parse(this.responseText);
+                        var table = document.getElementById("result_table");
+
+                        // clear table
+                        while (table.hasChildNodes()) 
+                        {
+                            table.removeChild(table.lastChild);
+                        }
+                        // build table from content got from ajax
+                        for(var i = 0; i < todos.length; i++)
+                        {
+                            // build new row
+                            var row = table.insertRow(i);
+                            var col1 = row.insertCell(0);
+                            var col2 = row.insertCell(1);
+                            // build checkbox element
+                            var checkBox = document.createElement("input");
+                            checkBox.type = "checkbox";
+                            checkBox.id = todos[i].id;
+                            if(todos[i].completed)
+                            {
+                                checkBox.checked = true;
+                            }
+                            checkBox.addEventListener('change', changeTodo);
+                            col1.appendChild(checkBox);
+                            var label = document.createElement("label");
+                            label.innerHTML = todos[i].text;
+                            col1.appendChild(label);
+                            // build delete button
+                            var button = document. createElement("button");
+                            button.innerHTML = "delete";
+                            button.id = todos[i].id;
+                            button.addEventListener("click", deleteTodo);
+                            col2.appendChild(button);
+                        }
+                    }
+                };
+
+                xhttp.open("GET", "https://cse204.work/todos", true);
+                xhttp.setRequestHeader("x-api-key","d9b0ac-4653e7-c63aae-de2505-2e1882");
+                xhttp.send();
+            }
+
+            function changeTodo()
+            {
+                event.preventDefault();
+                
+                var data;
+                if(event.target.checked) 
+                {
+                    data = 
+                    {
+                        completed: true
+                    }
+                    
+                }
+                else
+                {
+                    data = 
+                    {
+                        completed: false
+                    }
+                }
+                var xhttp = new XMLHttpRequest();
+                xhttp.onreadystatechange = function() {
+                    if (this.readyState == 4 && this.status == 200) {
+                        updateTodo();
+                    }
+                };
+                xhttp.open("PUT", "https://cse204.work/todos/"+event.target.id, true);
+                xhttp.setRequestHeader("Content-type", "application/json");
+                xhttp.setRequestHeader("x-api-key","d9b0ac-4653e7-c63aae-de2505-2e1882");
+                xhttp.send(JSON.stringify(data));
+            }
+
+            function createTodo()
+            {
+                event.preventDefault();
+                var data = 
+                {
+                    text: document.getElementById("todo").value
+                }
+                var xhttp = new XMLHttpRequest();
+                xhttp.onreadystatechange = function() {
+                    if (this.readyState == 4 && this.status == 200) {
+                        updateTodo();
+                        document.getElementById("todo").value = "";
+                    }
+                };
+                xhttp.open("POST", "https://cse204.work/todos", true);
+                xhttp.setRequestHeader("Content-type", "application/json");
+                xhttp.setRequestHeader("x-api-key","d9b0ac-4653e7-c63aae-de2505-2e1882");
+                xhttp.send(JSON.stringify(data));
+            }
+
+            function deleteTodo()
+            {
+                event.preventDefault();
+                var xhttp = new XMLHttpRequest();
+                xhttp.onreadystatechange = function() {
+                    if (this.readyState == 4 && this.status == 200) {
+                        updateTodo();
+                    }
+                };
+                xhttp.open("DELETE", "https://cse204.work/todos/"+event.target.id, true);
+                xhttp.setRequestHeader("Content-type", "application/json");
+                xhttp.setRequestHeader("x-api-key","d9b0ac-4653e7-c63aae-de2505-2e1882");
+                xhttp.send();
+            }
+            
+            document.addEventListener("DOMContentLoaded", updateTodo);
+            document.getElementById("addForm").addEventListener("submit", createTodo, false);
+        </script>
+    </body>
+</html>
